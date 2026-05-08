@@ -22,25 +22,36 @@ Isso inicia:
 - Qdrant HTTP em `localhost:6333`
 - Qdrant gRPC em `localhost:6334`
 
-2. Configure os secrets locais da API:
+2. Configure o arquivo `src\Api\appsettings.json` antes de rodar a API.
 
-```powershell
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Host=localhost;Port=5432;Database=agent_service;Username=postgres;Password=postgres" --project src\Api\Api.csproj
-dotnet user-secrets set "OpenAI:ApiKey" "SUA_CHAVE_OPENAI" --project src\Api\Api.csproj
-dotnet user-secrets set "OpenAI:ChatModel" "gpt-4o-mini" --project src\Api\Api.csproj
-dotnet user-secrets set "OpenAI:EmbeddingModel" "text-embedding-3-small" --project src\Api\Api.csproj
-dotnet user-secrets set "Llm:Provider" "OpenAI" --project src\Api\Api.csproj
-dotnet user-secrets set "Qdrant:Host" "localhost" --project src\Api\Api.csproj
-dotnet user-secrets set "Qdrant:Port" "6334" --project src\Api\Api.csproj
-dotnet user-secrets set "Qdrant:VectorSize" "1536" --project src\Api\Api.csproj
-dotnet user-secrets set "Jwt:SecretKey" "troque-por-uma-chave-com-mais-de-32-caracteres" --project src\Api\Api.csproj
+Atualize pelo menos estes campos conforme o seu ambiente:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=agent_service;Username=postgres;Password=postgres"
+  },
+  "Jwt": {
+    "SecretKey": "troque-por-uma-chave-com-mais-de-32-caracteres"
+  },
+  "Llm": {
+    "Provider": "OpenAI"
+  },
+  "OpenAI": {
+    "ApiKey": "SUA_CHAVE_OPENAI",
+    "ChatModel": "gpt-4o-mini",
+    "EmbeddingModel": "text-embedding-3-small"
+  },
+  "Qdrant": {
+    "Host": "localhost",
+    "Port": 6334,
+    "ApiKey": "",
+    "VectorSize": 1536
+  }
+}
 ```
 
-Se estiver usando o Qdrant local do `docker-compose.yml`, remova qualquer secret local de API key do Qdrant:
-
-```powershell
-dotnet user-secrets remove "Qdrant:ApiKey" --project src\Api\Api.csproj
-```
+Se estiver usando o Qdrant local do `docker-compose.yml`, deixe `Qdrant:ApiKey` vazio.
 
 3. Restaure e compile:
 
@@ -85,24 +96,45 @@ Valores aceitos:
 
 Para usar OpenAI:
 
-```powershell
-dotnet user-secrets set "Llm:Provider" "OpenAI" --project src\Api\Api.csproj
-dotnet user-secrets set "OpenAI:ApiKey" "SUA_CHAVE_OPENAI" --project src\Api\Api.csproj
-dotnet user-secrets set "OpenAI:ChatModel" "gpt-4o-mini" --project src\Api\Api.csproj
-dotnet user-secrets set "OpenAI:EmbeddingModel" "text-embedding-3-small" --project src\Api\Api.csproj
-dotnet user-secrets set "Qdrant:VectorSize" "1536" --project src\Api\Api.csproj
+```json
+{
+  "Llm": {
+    "Provider": "OpenAI"
+  },
+  "OpenAI": {
+    "ApiKey": "SUA_CHAVE_OPENAI",
+    "ChatModel": "gpt-4o-mini",
+    "EmbeddingModel": "text-embedding-3-small"
+  },
+  "Qdrant": {
+    "VectorSize": 1536
+  }
+}
 ```
 
 Para usar Ollama:
 
 ```powershell
-ollama pull llama3.1
-ollama pull nomic-embed-text
-dotnet user-secrets set "Llm:Provider" "Ollama" --project src\Api\Api.csproj
-dotnet user-secrets set "Ollama:BaseUrl" "http://localhost:11434/v1" --project src\Api\Api.csproj
-dotnet user-secrets set "Ollama:ChatModel" "llama3.1" --project src\Api\Api.csproj
-dotnet user-secrets set "Ollama:EmbeddingModel" "nomic-embed-text" --project src\Api\Api.csproj
-dotnet user-secrets set "Qdrant:VectorSize" "768" --project src\Api\Api.csproj
+ollama pull gemma4:e2b
+ollama pull qwen3-embedding:4b
+```
+
+Depois ajuste `src\Api\appsettings.json`:
+
+```json
+{
+  "Llm": {
+    "Provider": "Ollama"
+  },
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434/v1",
+    "ChatModel": "llama3.1",
+    "EmbeddingModel": "nomic-embed-text"
+  },
+  "Qdrant": {
+    "VectorSize": 768
+  }
+}
 ```
 
 Se trocar o modelo de embedding, ajuste `Qdrant:VectorSize` para a dimensao do embedding do modelo. Colecoes ja criadas no Qdrant mantem o tamanho antigo; para trocar a dimensao, use uma nova colecao ou limpe os dados locais do Qdrant.
