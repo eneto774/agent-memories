@@ -21,41 +21,35 @@ public static class DependencyInjection
     {
         var cfg = builder.Configuration;
 
-        // EF Core + Postgres
         builder.Services.AddDbContext<AppDbContext>(opt =>
             opt.UseNpgsql(cfg.GetConnectionString("DefaultConnection"))
         );
 
-        // Configuration
         builder.Services.Configure<QdrantSettings>(cfg.GetSection("Qdrant"));
         builder.Services.Configure<JwtSettings>(cfg.GetSection("Jwt"));
         builder.Services.Configure<EmailSettings>(cfg.GetSection("Email"));
 
-        // Qdrant
         builder.Services.AddSingleton(sp =>
         {
             var s = sp.GetRequiredService<IOptions<QdrantSettings>>().Value;
             return new QdrantClient(s.Host, s.Port, false, s.ApiKey);
         });
 
-        // Repositories
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IMagicLinkTokenRepository, MagicLinkTokenRepository>();
         builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
         builder.Services.AddScoped<IUserMemoryRepository, UserMemoryRepository>();
 
-        // Services
         builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
         builder.Services.AddScoped<IEmailService, SmtpEmailService>();
         builder.Services.AddSingleton<IVectorUserMemoryService, QdrantUserMemoryService>();
 
-        // JWT Authentication
         var jwtSettings = cfg.GetSection("Jwt").Get<JwtSettings>()!;
         builder
             .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opt =>
             {
-                opt.MapInboundClaims = false; // keep original claim names (sub, email, jti)
+                opt.MapInboundClaims = false;
                 opt.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
